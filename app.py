@@ -69,50 +69,83 @@ st.markdown('<h1 class="main-header">🌿 Finanz Portfolio Tracker</h1>', unsafe
 if 'portfolio' not in st.session_state:
     st.session_state.portfolio = {}
 
-# CSV-Upload und Verarbeitung
+# CSV-Upload und Verarbeitung für Yuh-Format
 def process_yuh_csv(uploaded_file):
     try:
-        # CSV Datei lesen
+        # CSV Datei lesen mit korrekter Kodierung
         df = pd.read_csv(uploaded_file, sep=';', encoding='utf-8-sig')
         
-        # Transaktionen filtern (nur Käufe)
+        # Transaktionen filtern (nur Kauf-Transaktionen)
         buy_transactions = df[df['ACTIVITY TYPE'] == 'INVEST_ORDER_EXECUTED']
         
         assets_added = 0
         for _, transaction in buy_transactions.iterrows():
-            activity_name = transaction['ACTIVITY NAME']
-            
-            # Asset-Informationen extrahieren
-            match = re.search(r'([\d,.]+)x\s+(.+)', str(activity_name))
-            if match:
-                quantity = float(match.group(1).replace(',', ''))
-                asset_name = match.group(2).strip()
+            try:
+                activity_name = str(transaction['ACTIVITY NAME'])
                 
-                # Preis und Symbol extrahieren
-                price_per_unit = transaction['PRICE PER UNIT']
-                asset_symbol = transaction['ASSET']
+                # Extrahiere Menge und Asset-Namen
+                quantity_match = re.search(r'([\d,\.]+)x', activity_name)
+                name_match = re.search(r'x\s+(.+)', activity_name)
                 
-                # Währung bestimmen
-                currency = 'CHF' if transaction['DEBIT CURRENCY'] == 'CHF' else 'USD'
-                
-                # Asset zum Portfolio hinzufügen
-                asset_key = f"{asset_name} ({asset_symbol})"
-                if asset_key not in st.session_state.portfolio:
-                    st.session_state.portfolio[asset_key] = {
-                        "symbol": asset_symbol,
-                        "quantity": quantity,
-                        "purchase_price": price_per_unit,
-                        "purchase_date": transaction['DATE'],
-                        "current_price": price_per_unit * 1.05,  # 5% Gewinn simulieren
-                        "type": "ETF" if "Vanguard" in asset_name else "Crypto" if "Bitcoin" in asset_name or "XBT" in asset_symbol else "Stock",
-                        "currency": currency
-                    }
+                if quantity_match and name_match:
+                    # Menge bereinigen und konvertieren
+                    quantity_str = quantity_match.group(1).replace(',', '')
+                    quantity = float(quantity_str)
+                    
+                    # Asset-Namen bereinigen
+                    asset_name = name_match.group(1).strip()
+                    
+                    # Preis und Symbol extrahieren
+                    price_per_unit = float(transaction['PRICE PER UNIT']) if pd.notna(transaction['PRICE PER UNIT']) else 0
+                    asset_symbol = transaction['ASSET'] if pd.notna(transaction['ASSET']) else 'UNKNOWN'
+                    
+                    # Währung bestimmen
+                    currency = 'CHF' if transaction['DEBIT CURRENCY'] == 'CHF' else 'USD'
+                    
+                    # Asset-Typ bestimmen
+                    if any(x in asset_name.upper() for x in ['VANGUARD', 'ISHARES', 'ETF', 'FONDS']):
+                        asset_type = "ETF"
+                    elif any(x in asset_symbol for x in ['XBT', 'XRP', 'XLM', 'LNK']):
+                        asset_type = "Krypto"
+                    elif 'GOLD' in asset_name.upper():
+                        asset_type = "Rohstoffe"
+                    else:
+                        asset_type = "Aktie"
+                    
+                    # Einzigartigen Schlüssel erstellen
+                    asset_key = f"{asset_name} ({asset_symbol})"
+                    
+                    # Prüfen ob Asset bereits existiert und Menge addieren
+                    if asset_key in st.session_state.portfolio:
+                        # Bestehende Menge aktualisieren (kumulativ)
+                        st.session_state.portfolio[asset_key]['quantity'] += quantity
+                        # Durchschnittspreis berechnen
+                        old_value = st.session_state.portfolio[asset_key]['quantity'] * st.session_state.portfolio[asset_key]['purchase_price']
+                        new_value = quantity * price_per_unit
+                        total_quantity = st.session_state.portfolio[asset_key]['quantity']
+                        st.session_state.portfolio[asset_key]['purchase_price'] = (old_value + new_value) / total_quantity
+                    else:
+                        # Neues Asset hinzufügen
+                        st.session_state.portfolio[asset_key] = {
+                            "symbol": asset_symbol,
+                            "quantity": quantity,
+                            "purchase_price": price_per_unit,
+                            "purchase_date": transaction['DATE'],
+                            "current_price": price_per_unit * 1.05,  # 5% Gewinn simulieren
+                            "type": asset_type,
+                            "currency": currency
+                        }
+                    
                     assets_added += 1
+                    
+            except Exception as e:
+                st.warning(f"Konnte Transaktion nicht verarbeiten: {transaction['ACTIVITY NAME']}")
+                continue
         
         return assets_added
         
     except Exception as e:
-        st.error(f"Fehler beim Verarbeiten der CSV-Datei: {e}")
+        st.error(f"Fehler beim Verarbeiten der CSV-Datei: {str(e)}")
         return 0
 
 # Navigation
@@ -158,17 +191,20 @@ if page == "Dashboard":
         
         with col1:
             st.subheader("Asset-Verteilung")
-            fig = px.pie(portfolio_df, values='Aktueller Wert', names=portfolio_df.index, 
-                         color_discrete_sequence=['#2E8B57', '#8B4513', '#F5F5DC', '#3CB371', '#A0522D'])
-            st.plotly_chart(fig, use_container_width=True)
+            if not portfolio_df.empty:
+                fig = px.pie(portfolio_df, values='Aktueller Wert', names=portfolio_df.index, 
+                             color_discrete_sequence=['#2E8B57', '#8B4513', '#F5F5DC', '#3CB371', '#A0522D'])
+                st.plotly_chart(fig, use_container_width=True)
         
         with col2:
             st.subheader("Performance nach Asset")
-            fig = px.bar(portfolio_df, x=portfolio_df.index, y='Gewinn/Verlust %', 
-                         title="Gewinn/Verlust in %",
-                         color_discrete_sequence=['#2E8B57' if x >= 0 else '#8B4513' for x in portfolio_df['Gewinn/Verlust %']])
-            fig.update_layout(xaxis_title="Asset", yaxis_title="Gewinn/Verlust %")
-            st.plotly_chart(fig, use_container_width=True)
+            if not portfolio_df.empty:
+                fig = px.bar(portfolio_df, x=portfolio_df.index, y='Gewinn/Verlust %', 
+                             title="Gewinn/Verlust in %",
+                             color='Gewinn/Verlust %',
+                             color_continuous_scale=['#8B4513', '#2E8B57'])
+                fig.update_layout(xaxis_title="Asset", yaxis_title="Gewinn/Verlust %")
+                st.plotly_chart(fig, use_container_width=True)
         
         # Detaillierte Asset-Tabelle
         st.subheader("Asset Details")
@@ -182,7 +218,7 @@ if page == "Dashboard":
             display_df[col] = display_df[col].apply(lambda x: f"{x:,.2f}")
         display_df['Gewinn/Verlust %'] = display_df['Gewinn/Verlust %'].apply(lambda x: f"{x:+.2f}%")
         
-        st.dataframe(display_df, use_container_width=True)
+        st.dataframe(display_df, use_container_width=True, height=400)
         
     else:
         st.info("❌ Noch keine Assets vorhanden. Gehen Sie zu 'CSV Import' oder 'Asset hinzufügen' um Investments hinzuzufügen.")
@@ -216,7 +252,8 @@ elif page == "Asset hinzufügen":
                 # Aktuellen Preis simulieren
                 current_price = price * 1.05  # 5% Gewinn simulieren
                 
-                st.session_state.portfolio[name] = {
+                asset_key = f"{name} ({symbol})"
+                st.session_state.portfolio[asset_key] = {
                     "symbol": symbol,
                     "quantity": quantity,
                     "purchase_price": price,
@@ -225,30 +262,40 @@ elif page == "Asset hinzufügen":
                     "type": asset_type,
                     "currency": currency
                 }
-                st.success(f"✅ {name} wurde erfolgreich hinzugefügt!")
+                st.success(f"✅ {asset_key} wurde erfolgreich hinzugefügt!")
                 st.balloons()
 
 # CSV Import Seite
 elif page == "CSV Import":
-    st.header("📤 CSV Datei importieren")
+    st.header("📤 Yuh CSV Datei importieren")
     
     st.info("""
-    **Unterstütztes Format:** Yuh CSV Export (wie bereitgestellt)
-    **So geht's:**
-    1. Laden Sie Ihre CSV-Datei von Yuh herunter
-    2. Laden Sie sie hier hoch
-    3. Die App erkennt automatisch alle Kauf-Transaktionen
+    **Unterstütztes Format:** Yuh CSV Export
+    **Enthaltene Assets aus Ihrer Datei:**
+    - Vanguard FTSE All-World (VWRA)
+    - Vanguard S&P 500 (VUSD) 
+    - Bitcoin (XBT)
+    - Blackrock (BLK)
+    - XRP
+    - Stellar (XLM)
+    - Gold ETF (ZGLD)
+    - Chainlink (LNK)
+    - iShares MSCI EM Asia (CSEMAS)
+    - Invesco Nasdaq-100 (EQCH)
     """)
     
-    uploaded_file = st.file_uploader("CSV Datei hochladen", type="csv")
+    uploaded_file = st.file_uploader("Yuh CSV Datei hochladen", type="csv")
     
     if uploaded_file is not None:
-        assets_added = process_yuh_csv(uploaded_file)
+        with st.spinner("Verarbeite CSV-Datei..."):
+            assets_added = process_yuh_csv(uploaded_file)
+            
         if assets_added > 0:
             st.success(f"✅ {assets_added} Assets wurden erfolgreich importiert!")
             st.balloons()
+            st.info("Wechseln Sie zum Dashboard um Ihre Portfolio-Übersicht zu sehen.")
         else:
-            st.warning("Keine neuen Assets in der CSV-Datei gefunden.")
+            st.warning("Keine neuen Kauf-Transaktionen in der CSV-Datei gefunden.")
 
 # Portfolio Management Seite
 elif page == "Portfolio Management":
@@ -271,6 +318,14 @@ elif page == "Portfolio Management":
                     st.write(f"**Kaufdatum:** {asset_data['purchase_date']}")
                     st.write(f"**Typ:** {asset_data['type']}")
                 
+                # Gewinn/Verlust berechnen
+                invested = asset_data['quantity'] * asset_data['purchase_price']
+                current = asset_data['quantity'] * asset_data['current_price']
+                gain = current - invested
+                gain_percent = (gain / invested) * 100 if invested > 0 else 0
+                
+                st.write(f"**Gewinn/Verlust:** {gain:,.2f} {asset_data['currency']} ({gain_percent:+.2f}%)")
+                
                 # Bearbeiten und Löschen Buttons
                 col3, col4 = st.columns(2)
                 
@@ -291,22 +346,14 @@ elif page == "Portfolio Management":
             asset_data = st.session_state.portfolio[asset_name]
             
             with st.form("edit_asset_form"):
-                new_name = st.text_input("Name", value=asset_name)
-                new_quantity = st.number_input("Menge", value=asset_data['quantity'])
-                new_price = st.number_input("Kaufpreis", value=asset_data['purchase_price'])
+                new_quantity = st.number_input("Menge", value=asset_data['quantity'], min_value=0.0, format="%.4f")
+                new_price = st.number_input("Kaufpreis", value=asset_data['purchase_price'], min_value=0.0, format="%.2f")
+                new_current_price = st.number_input("Aktueller Preis", value=asset_data['current_price'], min_value=0.0, format="%.2f")
                 
                 if st.form_submit_button("Änderungen speichern"):
-                    # Altes Asset löschen und neues hinzufügen
-                    del st.session_state.portfolio[asset_name]
-                    st.session_state.portfolio[new_name] = {
-                        "symbol": asset_data['symbol'],
-                        "quantity": new_quantity,
-                        "purchase_price": new_price,
-                        "purchase_date": asset_data['purchase_date'],
-                        "current_price": new_price * 1.05,
-                        "type": asset_data['type'],
-                        "currency": asset_data['currency']
-                    }
+                    st.session_state.portfolio[asset_name]['quantity'] = new_quantity
+                    st.session_state.portfolio[asset_name]['purchase_price'] = new_price
+                    st.session_state.portfolio[asset_name]['current_price'] = new_current_price
                     del st.session_state.editing_asset
                     st.success("✅ Asset wurde aktualisiert!")
                     st.rerun()
@@ -341,33 +388,37 @@ else:
         col1, col2 = st.columns(2)
         
         with col1:
-            fig = px.bar(type_performance, x='type', y='Gewinn/Verlust', 
-                         title="Gewinn/Verlust nach Typ (CHF)",
-                         color='type', color_discrete_sequence=['#2E8B57', '#8B4513', '#F5F5DC', '#3CB371'])
-            st.plotly_chart(fig, use_container_width=True)
+            if not type_performance.empty:
+                fig = px.bar(type_performance, x='type', y='Gewinn/Verlust', 
+                             title="Gewinn/Verlust nach Typ (CHF)",
+                             color='type', color_discrete_sequence=['#2E8B57', '#8B4513', '#F5F5DC', '#3CB371'])
+                st.plotly_chart(fig, use_container_width=True)
         
         with col2:
-            fig = px.pie(type_performance, values='Aktueller Wert', names='type', 
-                         title="Verteilung nach Typ",
-                         color_discrete_sequence=['#2E8B57', '#8B4513', '#F5F5DC', '#3CB371'])
-            st.plotly_chart(fig, use_container_width=True)
+            if not type_performance.empty:
+                fig = px.pie(type_performance, values='Aktueller Wert', names='type', 
+                             title="Verteilung nach Typ",
+                             color_discrete_sequence=['#2E8B57', '#8B4513', '#F5F5DC', '#3CB371'])
+                st.plotly_chart(fig, use_container_width=True)
         
         # Top Performers
         st.subheader("Top Performers")
-        top_performers = portfolio_df.nlargest(5, 'Gewinn/Verlust')
-        fig = px.bar(top_performers, x=top_performers.index, y='Gewinn/Verlust',
-                     title="Top 5 Assets nach Gewinn (CHF)",
-                     color_discrete_sequence=['#2E8B57'])
-        st.plotly_chart(fig, use_container_width=True)
+        if not portfolio_df.empty:
+            top_performers = portfolio_df.nlargest(5, 'Gewinn/Verlust')
+            fig = px.bar(top_performers, x=top_performers.index, y='Gewinn/Verlust',
+                         title="Top 5 Assets nach Gewinn (CHF)",
+                         color_discrete_sequence=['#2E8B57'])
+            st.plotly_chart(fig, use_container_width=True)
         
         # Risikoanalyse
         st.subheader("Risikoanalyse")
-        portfolio_df['Volatilität'] = np.random.uniform(5, 25, len(portfolio_df))  # Simulierte Daten
-        fig = px.scatter(portfolio_df, x='Volatilität', y='Gewinn/Verlust %', 
-                         size='Aktueller Wert', hover_name=portfolio_df.index,
-                         title="Risiko vs. Ertrag",
-                         color_discrete_sequence=['#8B4513'])
-        st.plotly_chart(fig, use_container_width=True)
+        if not portfolio_df.empty:
+            portfolio_df['Volatilität'] = np.random.uniform(5, 25, len(portfolio_df))  # Simulierte Daten
+            fig = px.scatter(portfolio_df, x='Volatilität', y='Gewinn/Verlust %', 
+                             size='Aktueller Wert', hover_name=portfolio_df.index,
+                             title="Risiko vs. Ertrag",
+                             color_discrete_sequence=['#8B4513'])
+            st.plotly_chart(fig, use_container_width=True)
         
     else:
         st.info("Fügen Sie Assets hinzu, um detaillierte Analysen zu sehen.")
