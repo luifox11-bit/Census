@@ -29,6 +29,12 @@ st.markdown("""
     .stApp {
         background-color: #000000;
     }
+    /* Verbesserte Lesbarkeit für alle Texte */
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        font-size: 16px;
+        line-height: 1.6;
+    }
     /* Header */
     .main-header {
         font-size: 3rem;
@@ -40,12 +46,21 @@ st.markdown("""
         background: linear-gradient(45deg, #1DB954, #191414);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
+        text-shadow: 0px 2px 4px rgba(0,0,0,0.3);
     }
     /* Seitenüberschriften */
     h1, h2, h3 {
         color: #FFFFFF !important;
         font-weight: 700 !important;
         letter-spacing: -0.5px;
+        line-height: 1.3;
+        margin-bottom: 1rem !important;
+    }
+    /* Paragraph Text */
+    p {
+        font-size: 16px;
+        line-height: 1.6;
+        color: #E0E0E0 !important;
     }
     /* Metrik-Karten */
     .metric-card {
@@ -62,27 +77,29 @@ st.markdown("""
         box-shadow: 0 8px 25px rgba(29, 185, 84, 0.15);
     }
     .metric-value {
-        font-size: 2rem;
+        font-size: 2.2rem;
         font-weight: 800;
         color: #FFFFFF;
         margin-bottom: 0.5rem;
+        letter-spacing: -0.5px;
     }
     .metric-label {
-        font-size: 0.9rem;
+        font-size: 1rem;
         color: #A0A0A0;
         text-transform: uppercase;
         letter-spacing: 1px;
         margin-bottom: 0.5rem;
+        font-weight: 600;
     }
     .metric-change-positive {
         color: #1DB954;
         font-weight: 700;
-        font-size: 1.1rem;
+        font-size: 1.2rem;
     }
     .metric-change-negative {
         color: #E22134;
         font-weight: 700;
-        font-size: 1.1rem;
+        font-size: 1.2rem;
     }
     /* Buttons */
     .stButton > button {
@@ -94,6 +111,7 @@ st.markdown("""
         font-weight: 600;
         transition: all 0.3s ease;
         width: 100%;
+        font-size: 16px;
     }
     .stButton > button:hover {
         background-color: #1ED760;
@@ -124,6 +142,7 @@ st.markdown("""
         color: #1DB954 !important;
         font-weight: 700;
         margin-bottom: 2rem;
+        font-size: 1.5rem;
     }
     /* Formulare */
     .stTextInput > div > div > input, 
@@ -135,11 +154,34 @@ st.markdown("""
         border: 1px solid #2E2E2E;
         border-radius: 8px;
         padding: 0.75rem;
+        font-size: 16px;
+    }
+    /* Labels für Formulare */
+    .stTextInput > label, 
+    .stNumberInput > label,
+    .stDateInput > label,
+    .stSelectbox > label {
+        font-size: 16px;
+        font-weight: 600;
+        color: #E0E0E0 !important;
+        margin-bottom: 0.5rem;
     }
     /* Dataframes */
     .dataframe {
         background-color: #191414;
         color: #FFFFFF;
+        font-size: 14px;
+    }
+    .dataframe th {
+        background-color: #2E2E2E !important;
+        color: #FFFFFF !important;
+        font-weight: 700;
+        font-size: 14px;
+    }
+    .dataframe td {
+        background-color: #191414 !important;
+        color: #FFFFFF !important;
+        font-size: 14px;
     }
     /* Radio-Buttons in der Sidebar */
     .stRadio > div {
@@ -154,6 +196,7 @@ st.markdown("""
         margin-bottom: 0.5rem;
         background-color: #191414;
         border: 1px solid #2E2E2E;
+        font-size: 16px;
     }
     .stRadio > div > label:hover {
         background-color: #2A2A2A;
@@ -179,6 +222,7 @@ st.markdown("""
         gap: 8px;
         font-weight: 600;
         border: 1px solid #2E2E2E;
+        font-size: 16px;
     }
     .stTabs [aria-selected="true"] {
         background-color: #1DB954;
@@ -192,9 +236,16 @@ st.markdown("""
         border: 1px solid #2E2E2E;
         padding: 0.75rem 1rem;
         font-weight: 600;
+        font-size: 18px;
     }
     .streamlit-expanderHeader:hover {
         background-color: #2A2A2A;
+    }
+    .streamlit-expanderContent {
+        background-color: #191414;
+        color: #E0E0E0;
+        font-size: 16px;
+        line-height: 1.6;
     }
     /* Progress Bar */
     .stProgress > div > div > div {
@@ -209,6 +260,8 @@ st.markdown("""
         border-radius: 8px;
         background-color: #191414;
         border: 1px solid #2E2E2E;
+        font-size: 16px;
+        line-height: 1.6;
     }
     /* Custom Divider */
     .divider {
@@ -233,10 +286,13 @@ st.markdown("""
     /* Mobile Optimization */
     @media (max-width: 768px) {
         .main-header {
-            font-size: 2rem;
+            font-size: 2.2rem;
         }
         .metric-value {
-            font-size: 1.5rem;
+            font-size: 1.8rem;
+        }
+        body {
+            font-size: 14px;
         }
     }
     /* Loading Animation */
@@ -247,6 +303,17 @@ st.markdown("""
     }
     .pulse {
         animation: pulse 1.5s infinite;
+    }
+    /* Verbesserte Lesbarkeit für Plotly Charts */
+    .js-plotly-plot .plotly .modebar {
+        background-color: transparent !important;
+    }
+    /* Tooltip Styling */
+    .stTooltip {
+        font-size: 14px;
+        background-color: #191414;
+        color: #FFFFFF;
+        border: 1px solid #2E2E2E;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -574,9 +641,16 @@ if page == "Dashboard":
                 fig.update_layout(
                     paper_bgcolor='rgba(0,0,0,0)',
                     plot_bgcolor='rgba(0,0,0,0)',
-                    font_color='#FFFFFF',
+                    font=dict(size=16, color='#FFFFFF'),
                     showlegend=True,
-                    legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="center", x=0.5)
+                    legend=dict(
+                        orientation="h", 
+                        yanchor="bottom", 
+                        y=1.02, 
+                        xanchor="center", 
+                        x=0.5,
+                        font=dict(size=14)
+                    )
                 )
                 st.plotly_chart(fig, use_container_width=True)
         
@@ -591,7 +665,7 @@ if page == "Dashboard":
                 fig.update_layout(
                     paper_bgcolor='rgba(0,0,0,0)',
                     plot_bgcolor='rgba(0,0,0,0)',
-                    font_color='#FFFFFF',
+                    font=dict(size=16, color='#FFFFFF'),
                     xaxis_title="Asset",
                     yaxis_title="Gewinn/Verlust %",
                     showlegend=False
@@ -741,228 +815,3 @@ elif page == "Portfolio Management":
                 
                 with col3:
                     if st.button(f"Bearbeiten", key=f"edit_{asset_name}"):
-                        st.session_state.editing_asset = asset_name
-                
-                with col4:
-                    if st.button(f"Löschen", key=f"delete_{asset_name}"):
-                        del st.session_state.portfolio[asset_name]
-                        if asset_name in st.session_state.price_history:
-                            del st.session_state.price_history[asset_name]
-                        st.success(f"✅ {asset_name} wurde gelöscht!")
-                        st.rerun()
-        
-        # Asset Bearbeiten Formular
-        if 'editing_asset' in st.session_state:
-            st.subheader("Asset bearbeiten")
-            asset_name = st.session_state.editing_asset
-            asset_data = st.session_state.portfolio[asset_name]
-            
-            with st.form("edit_asset_form"):
-                col1, col2 = st.columns(2)
-                
-                with col1:
-                    new_quantity = st.number_input("Menge", value=asset_data['quantity'], min_value=0.0001, format="%.4f", step=0.0001)
-                    new_price = st.number_input("Kaufpreis", value=asset_data['purchase_price'], min_value=0.01, format="%.2f", step=0.01)
-                
-                with col2:
-                    new_current_price = st.number_input("Aktueller Preis", value=asset_data['current_price'], min_value=0.01, format="%.2f", step=0.01)
-                    new_sector = st.text_input("Sektor", value=asset_data.get('sector', ''))
-                
-                col3, col4 = st.columns(2)
-                with col3:
-                    if st.form_submit_button("Änderungen speichern"):
-                        st.session_state.portfolio[asset_name]['quantity'] = new_quantity
-                        st.session_state.portfolio[asset_name]['purchase_price'] = new_price
-                        st.session_state.portfolio[asset_name]['current_price'] = new_current_price
-                        st.session_state.portfolio[asset_name]['sector'] = new_sector
-                        del st.session_state.editing_asset
-                        st.success("✅ Asset wurde aktualisiert!")
-                        st.rerun()
-                
-                with col4:
-                    if st.form_submit_button("Abbrechen"):
-                        del st.session_state.editing_asset
-                        st.rerun()
-    
-    else:
-        st.info("Keine Assets zum Verwalten vorhanden.")
-
-# Analysen Seite
-elif page == "Analysen":
-    st.header("📈 Detaillierte Analysen")
-    
-    if st.session_state.portfolio:
-        portfolio_df = pd.DataFrame.from_dict(st.session_state.portfolio, orient='index')
-        portfolio_df['Investiert'] = portfolio_df['quantity'] * portfolio_df['purchase_price']
-        portfolio_df['Aktueller Wert'] = portfolio_df['quantity'] * portfolio_df['current_price']
-        portfolio_df['Gewinn/Verlust'] = portfolio_df['Aktueller Wert'] - portfolio_df['Investiert']
-        
-        # Performance nach Asset Typ
-        st.subheader("Performance nach Asset Typ")
-        type_performance = portfolio_df.groupby('type').agg({
-            'Investiert': 'sum',
-            'Aktueller Wert': 'sum',
-            'Gewinn/Verlust': 'sum'
-        }).reset_index()
-        
-        type_performance['Gewinn/Verlust %'] = (type_performance['Gewinn/Verlust'] / type_performance['Investiert']) * 100
-        
-        col1, col2 = st.columns(2)
-        
-        with col1:
-            if not type_performance.empty:
-                fig = px.bar(type_performance, x='type', y='Gewinn/Verlust', 
-                             title="Gewinn/Verlust nach Typ (CHF)",
-                             color='type', color_discrete_sequence=px.colors.qualitative.Pastel)
-                fig.update_layout(
-                    paper_bgcolor='rgba(0,0,0,0)',
-                    plot_bgcolor='rgba(0,0,0,0)',
-                    font_color='#FFFFFF',
-                    showlegend=False
-                )
-                st.plotly_chart(fig, use_container_width=True)
-        
-        with col2:
-            if not type_performance.empty:
-                fig = px.pie(type_performance, values='Aktueller Wert', names='type', 
-                             title="Verteilung nach Typ",
-                             color_discrete_sequence=px.colors.qualitative.Pastel)
-                fig.update_layout(
-                    paper_bgcolor='rgba(0,0,0,0)',
-                    plot_bgcolor='rgba(0,0,0,0)',
-                    font_color='#FFFFFF'
-                )
-                st.plotly_chart(fig, use_container_width=True)
-        
-        # Performance nach Sektor
-        if 'sector' in portfolio_df.columns:
-            st.subheader("Performance nach Sektor")
-            sector_performance = portfolio_df.groupby('sector').agg({
-                'Investiert': 'sum',
-                'Aktueller Wert': 'sum',
-                'Gewinn/Verlust': 'sum'
-            }).reset_index()
-            
-            sector_performance['Gewinn/Verlust %'] = (sector_performance['Gewinn/Verlust'] / sector_performance['Investiert']) * 100
-            
-            col1, col2 = st.columns(2)
-            
-            with col1:
-                if not sector_performance.empty:
-                    fig = px.bar(sector_performance, x='sector', y='Gewinn/Verlust', 
-                                 title="Gewinn/Verlust nach Sektor (CHF)",
-                                 color='sector', color_discrete_sequence=px.colors.qualitative.Pastel)
-                    fig.update_layout(
-                        paper_bgcolor='rgba(0,0,0,0)',
-                        plot_bgcolor='rgba(0,0,0,0)',
-                        font_color='#FFFFFF',
-                        showlegend=False
-                    )
-                    st.plotly_chart(fig, use_container_width=True)
-            
-            with col2:
-                if not sector_performance.empty:
-                    fig = px.pie(sector_performance, values='Aktueller Wert', names='sector', 
-                                 title="Verteilung nach Sektor",
-                                 color_discrete_sequence=px.colors.qualitative.Pastel)
-                    fig.update_layout(
-                        paper_bgcolor='rgba(0,0,0,0)',
-                        plot_bgcolor='rgba(0,0,0,0)',
-                        font_color='#FFFFFF'
-                    )
-                    st.plotly_chart(fig, use_container_width=True)
-        
-        # Top Performers
-        st.subheader("Top Performers")
-        if not portfolio_df.empty:
-            top_performers = portfolio_df.nlargest(5, 'Gewinn/Verlust')
-            fig = px.bar(top_performers, x=top_performers.index, y='Gewinn/Verlust',
-                         title="Top 5 Assets nach Gewinn (CHF)",
-                         color_discrete_sequence=['#1DB954'])
-            fig.update_layout(
-                paper_bgcolor='rgba(0,0,0,0)',
-                plot_bgcolor='rgba(0,0,0,0)',
-                font_color='#FFFFFF',
-                showlegend=False
-            )
-            st.plotly_chart(fig, use_container_width=True)
-        
-        # Risikoanalyse
-        st.subheader("Risikoanalyse")
-        if not portfolio_df.empty:
-            portfolio_df['Volatilität'] = np.random.uniform(5, 25, len(portfolio_df))  # Simulierte Daten
-            fig = px.scatter(portfolio_df, x='Volatilität', y='Gewinn/Verlust %', 
-                             size='Aktueller Wert', hover_name=portfolio_df.index,
-                             title="Risiko vs. Ertrag",
-                             color='Gewinn/Verlust %',
-                             color_continuous_scale=['#E22134', '#1DB954'])
-            fig.update_layout(
-                paper_bgcolor='rgba(0,0,0,0)',
-                plot_bgcolor='rgba(0,0,0,0)',
-                font_color='#FFFFFF'
-            )
-            st.plotly_chart(fig, use_container_width=True)
-        
-        # Preisverlauf anzeigen
-        if st.session_state.price_history:
-            st.subheader("Preisverlauf")
-            selected_asset = st.selectbox("Asset auswählen", options=list(st.session_state.price_history.keys()))
-            
-            if selected_asset and st.session_state.price_history[selected_asset]:
-                history_df = pd.DataFrame(st.session_state.price_history[selected_asset])
-                history_df['date'] = pd.to_datetime(history_df['date'])
-                
-                fig = px.line(history_df, x='date', y='price', 
-                              title=f"Preisverlauf für {selected_asset}",
-                              markers=True)
-                fig.update_layout(
-                    paper_bgcolor='rgba(0,0,0,0)',
-                    plot_bgcolor='rgba(0,0,0,0)',
-                    font_color='#FFFFFF',
-                    xaxis_title="Datum",
-                    yaxis_title="Preis"
-                )
-                st.plotly_chart(fig, use_container_width=True)
-        
-    else:
-        st.info("Fügen Sie Assets hinzu, um detaillierte Analysen zu sehen.")
-
-# Einstellungen Seite
-else:
-    st.header("⚙️ Einstellungen")
-    
-    st.subheader("Portfolio zurücksetzen")
-    st.warning("Diese Aktion löscht alle Ihre Portfolio-Daten und kann nicht rückgängig gemacht werden.")
-    
-    if st.button("Portfolio zurücksetzen", type="secondary"):
-        st.session_state.portfolio = {}
-        st.session_state.price_history = {}
-        st.session_state.last_price_update = None
-        st.success("Portfolio wurde zurückgesetzt!")
-        st.rerun()
-    
-    st.subheader("Daten-Backup")
-    csv_data = export_portfolio()
-    if csv_data:
-        st.download_button(
-            label="Backup erstellen",
-            data=csv_data,
-            file_name="portfolio_backup.csv",
-            mime="text/csv"
-        )
-    
-    st.subheader("Design-Einstellungen")
-    theme = st.selectbox("Farbschema", ["Dunkel (Standard)", "Hell"])
-    st.info("Das Farbschema wird nach einem Neuladen der Seite aktiv.")
-
-# Footer
-st.sidebar.markdown("---")
-st.sidebar.info("🌿 Finanz Portfolio Tracker v2.0 | Erstellt mit Streamlit")
-
-# Auto-Update der Preise (alle 30 Minuten)
-if st.session_state.portfolio and st.session_state.last_price_update:
-    time_diff = datetime.now() - st.session_state.last_price_update
-    if time_diff.total_seconds() > 1800:  # 30 Minuten
-        with st.sidebar:
-            with st.spinner("Preise werden aktualisiert..."):
-                update_prices()
